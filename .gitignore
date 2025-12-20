@@ -8,8 +8,6 @@ test-ledger
 .yarn
 !target/idl
 !target/idl/*
-!target/types
-!target/types/*
 */build/
 build
 

@@ -1,0 +1,35 @@
+[package]
+name = "shingo_program"
+version = "0.1.0"
+description = "Created with Arcium & Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "shingo_program"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "arcium-anchor/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
+
+arcium-client = { version = "0.5.1", default-features = false }
+arcium-macros = "0.5.3"
+arcium-anchor = "0.5.3"
+solana-security-txt = "1.1.2"
+default-env = "0.1.1"
+bytemuck = "1.24.0"
+solana-address-lookup-table-interface = { version ="3.0.0", features = ["bincode", "bytemuck"] }
+
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_os, values("solana"))', 'cfg(feature, values("frozen-abi", "no-entrypoint"))'] }

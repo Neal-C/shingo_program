@@ -1167,23 +1167,8 @@
   "errors": [
     {
       "code": 6000,
-      "name": "NotSubbed",
-      "msg": "Not Subbed"
-    },
-    {
-      "code": 6001,
-      "name": "Nono",
-      "msg": "Nope."
-    },
-    {
-      "code": 6002,
-      "name": "AbortedComputation",
-      "msg": "The computation was aborted"
-    },
-    {
-      "code": 6003,
-      "name": "SubscriptionFailed",
-      "msg": "subscription failed"
+      "name": "InvalidCallbackTx",
+      "msg": "Invalid callback transaction"
     }
   ],
   "types": [

@@ -71,15 +71,6 @@
           "writable": true
         },
         {
-          "name": "followers",
-          "docs": [
-            "Address lookup table for season"
-          ],
-          "relations": [
-            "season"
-          ]
-        },
-        {
           "name": "season",
           "pda": {
             "seeds": [
@@ -105,6 +96,60 @@
               }
             ]
           }
+        },
+        {
+          "name": "followers",
+          "docs": [
+            "Address lookup table for season"
+          ],
+          "relations": [
+            "season"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_reveal_signal_comp_def",
+      "docs": [
+        "# Errors",
+        "Cannot fail",
+        "Called once by the admin"
+      ],
+      "discriminator": [
+        184,
+        216,
+        235,
+        61,
+        40,
+        137,
+        34,
+        175
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mxe_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account",
+          "docs": [
+            "Can't check it here as it's not initialized yet."
+          ],
+          "writable": true
+        },
+        {
+          "name": "arcium_program",
+          "address": "BpaW2ZmCJnDwizWY8eM34JtVqp2kRgnmQcedSVc9USdP"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -227,6 +272,7 @@
         },
         {
           "name": "season",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -343,6 +389,171 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "reveal_signal",
+      "docs": [
+        "# Errors",
+        "Errors if ``queue_computation`` fails"
+      ],
+      "discriminator": [
+        224,
+        171,
+        21,
+        85,
+        195,
+        253,
+        227,
+        240
+      ],
+      "accounts": [
+        {
+          "name": "followers",
+          "docs": [
+            "Address lookup table for season"
+          ],
+          "relations": [
+            "season"
+          ]
+        },
+        {
+          "name": "season"
+        },
+        {
+          "name": "signal"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sign_pda_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114,
+                  65,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "mempool_account",
+          "writable": true
+        },
+        {
+          "name": "executing_pool",
+          "writable": true
+        },
+        {
+          "name": "computation_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "cluster_account",
+          "writable": true
+        },
+        {
+          "name": "pool_account",
+          "writable": true,
+          "address": "7Siux8am1QYYP6H1kx917GxuuBwV3CedW85wQz7kAdXn"
+        },
+        {
+          "name": "clock_account",
+          "address": "8snfPfMYu3KaueWE79seRqFeYSxzZEgVZ914JfiRvCGP"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "arcium_program",
+          "address": "BpaW2ZmCJnDwizWY8eM34JtVqp2kRgnmQcedSVc9USdP"
+        }
+      ],
+      "args": [
+        {
+          "name": "computation_offset",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "reveal_signal_callback",
+      "discriminator": [
+        218,
+        151,
+        149,
+        167,
+        53,
+        163,
+        236,
+        154
+      ],
+      "accounts": [
+        {
+          "name": "arcium_program",
+          "address": "BpaW2ZmCJnDwizWY8eM34JtVqp2kRgnmQcedSVc9USdP"
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "computation_account"
+        },
+        {
+          "name": "cluster_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "output",
+          "type": {
+            "defined": {
+              "name": "SignedComputationOutputs",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": {
+                    "defined": {
+                      "name": "RevealSignalOutput"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     {
       "name": "share_signal_data",
@@ -668,16 +879,11 @@
             "array": [
               {
                 "array": [
-                  {
-                    "array": [
-                      "u8",
-                      32
-                    ]
-                  },
-                  2
+                  "u8",
+                  32
                 ]
               },
-              3
+              2
             ]
           }
         },
@@ -961,8 +1167,23 @@
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidCallbackTx",
-      "msg": "Invalid callback transaction"
+      "name": "NotSubbed",
+      "msg": "Not Subbed"
+    },
+    {
+      "code": 6001,
+      "name": "Nono",
+      "msg": "Nope."
+    },
+    {
+      "code": 6002,
+      "name": "AbortedComputation",
+      "msg": "The computation was aborted"
+    },
+    {
+      "code": 6003,
+      "name": "SubscriptionFailed",
+      "msg": "subscription failed"
     }
   ],
   "types": [
@@ -1090,14 +1311,9 @@
           {
             "name": "take_profits",
             "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "ProfitPoint"
-                  }
-                },
-                3
-              ]
+              "defined": {
+                "name": "ProfitPoint"
+              }
             }
           },
           {
@@ -1612,16 +1828,11 @@
               "array": [
                 {
                   "array": [
-                    {
-                      "array": [
-                        "u8",
-                        32
-                      ]
-                    },
-                    2
+                    "u8",
+                    32
                   ]
                 },
-                3
+                2
               ]
             }
           },
@@ -1857,6 +2068,161 @@
       }
     },
     {
+      "name": "RevealSignalOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "RevealSignalOutputStruct0"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RevealSignalOutputStruct0",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": "u8"
+          },
+          {
+            "name": "field_1",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "field_2",
+            "type": {
+              "defined": {
+                "name": "RevealSignalOutputStruct02"
+              }
+            }
+          },
+          {
+            "name": "field_3",
+            "type": "u8"
+          },
+          {
+            "name": "field_4",
+            "type": {
+              "defined": {
+                "name": "RevealSignalOutputStruct04"
+              }
+            }
+          },
+          {
+            "name": "field_5",
+            "type": "u64"
+          },
+          {
+            "name": "field_6",
+            "type": {
+              "defined": {
+                "name": "RevealSignalOutputStruct06"
+              }
+            }
+          },
+          {
+            "name": "field_7",
+            "type": "u64"
+          },
+          {
+            "name": "field_8",
+            "type": "u64"
+          },
+          {
+            "name": "field_9",
+            "type": "u8"
+          },
+          {
+            "name": "field_10",
+            "type": "u64"
+          },
+          {
+            "name": "field_11",
+            "type": "u64"
+          },
+          {
+            "name": "field_12",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RevealSignalOutputStruct02",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "field_1",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RevealSignalOutputStruct04",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": "u8"
+          },
+          {
+            "name": "field_1",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RevealSignalOutputStruct06",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": "u64"
+          },
+          {
+            "name": "field_1",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "Season",
       "type": {
         "kind": "struct",
@@ -1935,7 +2301,7 @@
                 "generics": [
                   {
                     "kind": "const",
-                    "value": "65"
+                    "value": "61"
                   }
                 ]
               }
@@ -2063,16 +2429,11 @@
               "array": [
                 {
                   "array": [
-                    {
-                      "array": [
-                        "u8",
-                        32
-                      ]
-                    },
-                    2
+                    "u8",
+                    32
                   ]
                 },
-                3
+                2
               ]
             }
           },

@@ -27,7 +27,11 @@ mod circuits {
         pub side: u8,
         pub entry: Entry,
         pub stop_loss: u64,
-        pub take_profits: [ProfitPoint; 3],
+        // ! Arcium bug
+        // ! arrays break Arcium codegen... 
+        // ! Impossible to contact anybody on the team: No public repo & issue tracker, no discord, no telegram, does not reply anywhere
+        // pub take_profits: [ProfitPoint; 3],
+        pub take_profits: ProfitPoint,
         pub size_usd: u64,
         pub leverage: u64,
         pub venue: u8,
@@ -45,4 +49,9 @@ mod circuits {
         receiver.from_arcis(input)
     }
 
+    #[instruction]
+    pub fn reveal_signal(encrypted_signal: Enc<Shared, Signal>) -> Signal {
+        let arcis_signal = encrypted_signal.to_arcis();
+        arcis_signal.reveal()
+    }
 }

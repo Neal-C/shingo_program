@@ -22,7 +22,7 @@ custom-panic = []
 [dependencies]
 anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
 
-arcium-client = { version = "0.5.1", default-features = false }
+arcium-client = { version = "0.5.3", default-features = false }
 arcium-macros = "0.5.3"
 arcium-anchor = "0.5.3"
 solana-security-txt = "1.1.2"

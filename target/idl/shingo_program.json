@@ -91,7 +91,7 @@
               },
               {
                 "kind": "account",
-                "path": "trader_account.season_count",
+                "path": "trader_account.current_season",
                 "account": "TraderAccount"
               }
             ]
@@ -292,7 +292,7 @@
               },
               {
                 "kind": "account",
-                "path": "trader_account.season_count.checked_add(1).unwrap_or(trader_account.season_count)",
+                "path": "trader_account.current_season.checked_add(1).unwrap_or(trader_account.current_season)",
                 "account": "TraderAccount"
               }
             ]
@@ -750,7 +750,7 @@
       "name": "store_signal_data",
       "docs": [
         "# Errors",
-        "Cannot error, fn just converts data types"
+        "Can error on safe arithmetic addition failure"
       ],
       "discriminator": [
         46,
@@ -766,10 +766,6 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "clock",
-          "address": "SysvarC1ock11111111111111111111111111111111"
         },
         {
           "name": "payer",
@@ -802,6 +798,11 @@
               {
                 "kind": "account",
                 "path": "season.id",
+                "account": "Season"
+              },
+              {
+                "kind": "account",
+                "path": "season.count",
                 "account": "Season"
               }
             ]
@@ -994,7 +995,7 @@
               },
               {
                 "kind": "account",
-                "path": "trader_account.season_count",
+                "path": "trader_account.current_season",
                 "account": "TraderAccount"
               }
             ]
@@ -1167,8 +1168,23 @@
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidCallbackTx",
-      "msg": "Invalid callback transaction"
+      "name": "NotSubbed",
+      "msg": "Not Subbed"
+    },
+    {
+      "code": 6001,
+      "name": "Nono",
+      "msg": "Nope."
+    },
+    {
+      "code": 6002,
+      "name": "AbortedComputation",
+      "msg": "The computation was aborted"
+    },
+    {
+      "code": 6003,
+      "name": "SubscriptionFailed",
+      "msg": "subscription failed"
     }
   ],
   "types": [
@@ -2227,6 +2243,10 @@
           {
             "name": "is_active",
             "type": "bool"
+          },
+          {
+            "name": "count",
+            "type": "u64"
           }
         ]
       }
@@ -2465,6 +2485,10 @@
           {
             "name": "created_at",
             "type": "i64"
+          },
+          {
+            "name": "number",
+            "type": "u64"
           }
         ]
       }
@@ -2550,7 +2574,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "season_count",
+            "name": "current_season",
             "type": "u64"
           },
           {

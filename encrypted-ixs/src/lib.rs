@@ -27,10 +27,6 @@ mod circuits {
         pub side: u8,
         pub entry: Entry,
         pub stop_loss: u64,
-        // ! Arcium bug
-        // ! arrays break Arcium codegen... 
-        // ! Impossible to contact anybody on the team: No public repo & issue tracker, no discord, no telegram, does not reply anywhere
-        // pub take_profits: [ProfitPoint; 3],
         pub take_profits: ProfitPoint,
         pub size_usd: u64,
         pub leverage: u64,

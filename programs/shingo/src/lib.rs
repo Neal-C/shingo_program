@@ -144,6 +144,7 @@ pub struct Signal {
     pub timeframe: [u8; 32],
     pub season_id: u64,
     pub created_at: i64,
+    pub number: u64,
 }
 
 impl Signal {
@@ -153,7 +154,7 @@ impl Signal {
 #[account]
 #[derive(InitSpace)]
 pub struct TraderAccount {
-    pub season_count: u64,
+    pub current_season: u64,
     pub has_active_season: bool,
 }
 
@@ -178,6 +179,7 @@ pub struct Season {
     pub subscription_price: u64,
     pub id: u64,
     pub is_active: bool,
+    pub count: u64,
 }
 
 impl Season {
@@ -308,7 +310,7 @@ pub struct InitialiazeSeason<'info> {
         has_one = followers,
         space = 8 + Season::INIT_SPACE,
         // has to be on 1 line
-        seeds = [Season::SEED, trader.key().as_ref(), trader_account.season_count.checked_add(1).unwrap_or(trader_account.season_count).to_le_bytes().as_ref()],
+        seeds = [Season::SEED, trader.key().as_ref(), trader_account.current_season.checked_add(1).unwrap_or(trader_account.current_season).to_le_bytes().as_ref()],
         bump)]
     pub season: Account<'info, Season>,
 }
@@ -336,7 +338,7 @@ pub struct SubscribeToSeason<'info> {
     #[account(
         has_one = followers,
         // has to be on 1 line
-        seeds = [trader.key().as_ref(), Season::SEED, trader_account.season_count.to_le_bytes().as_ref() ],
+        seeds = [trader.key().as_ref(), Season::SEED, trader_account.current_season.to_le_bytes().as_ref() ],
         bump)]
     pub season: Account<'info, Season>,
 }
@@ -363,7 +365,7 @@ pub struct CloseSeason<'info> {
     #[account(
         has_one = followers,
         // has to be on 1 line
-        seeds = [Season::SEED, trader.key().as_ref(), trader_account.season_count.to_le_bytes().as_ref()],
+        seeds = [Season::SEED, trader.key().as_ref(), trader_account.current_season.to_le_bytes().as_ref()],
         bump)]
     pub season: Account<'info, Season>,
 
@@ -378,8 +380,6 @@ pub struct CloseSeason<'info> {
 pub struct StoreSignal<'info> {
     pub system_program: Program<'info, System>,
 
-    pub clock: Sysvar<'info, Clock>,
-
     #[account(mut)]
     pub payer: Signer<'info>,
 
@@ -390,7 +390,7 @@ pub struct StoreSignal<'info> {
         payer = payer,
         space = 8 + Signal::INIT_SPACE,
         // has to be on 1 lineđ
-        seeds = [Signal::SEED, payer.key().as_ref(), season.id.to_le_bytes().as_ref()], bump)]
+        seeds = [Signal::SEED, payer.key().as_ref(), season.id.to_le_bytes().as_ref(), season.count.to_le_bytes().as_ref()], bump)]
     pub signal: Account<'info, Signal>,
 }
 
@@ -685,7 +685,7 @@ pub mod shingo_program {
     pub fn initialize_trader_account(ctx: Context<InitializeTraderAccount>) -> Result<()> {
         let trader_account = &mut ctx.accounts.trader_account;
 
-        trader_account.season_count = 0;
+        trader_account.current_season = 0;
         trader_account.has_active_season = false;
 
         let signal_counter = &mut ctx.accounts.signal_counter;
@@ -705,13 +705,14 @@ pub mod shingo_program {
     ) -> Result<()> {
         let trader_account = &mut ctx.accounts.trader_account;
         let season_number = trader_account
-            .season_count
+            .current_season
             .checked_add(1)
             .ok_or(ShingoProgramError::Nono)?;
 
         let season = &mut ctx.accounts.season;
         season.subscription_price = subscription_price;
         season.id = season_number;
+        season.count = 0;
 
         let signal_counter = &mut ctx.accounts.signal_counter;
         signal_counter.count = 0;
@@ -729,6 +730,9 @@ pub mod shingo_program {
             developer.key() == DEVELOPER_ADDRESS,
             ShingoProgramError::Nono
         );
+
+        // solana_address_lookup_table_interface::program::ID
+        // solana_address_lookup_table_interface::instruction::extend_lookup_table(lookup_table_address, authority_address, payer_address, new_addresses)
 
         let price = ctx.accounts.season.subscription_price;
 
@@ -779,7 +783,7 @@ pub mod shingo_program {
     // ########## Signal ###########
 
     /// # Errors
-    /// Cannot error, fn just converts data types
+    /// Can error on safe arithmetic addition failure
     #[allow(clippy::too_many_arguments)]
     pub fn store_signal_data(
         ctx: Context<StoreSignal>,
@@ -810,6 +814,14 @@ pub mod shingo_program {
         signal.timeframe = timeframe;
         signal.season_id = ctx.accounts.season.id;
         signal.created_at = Clock::get()?.unix_timestamp;
+        signal.number = ctx.accounts.season.count;
+
+        let season = &mut ctx.accounts.season;
+
+        season
+            .count
+            .checked_add(1)
+            .ok_or(ShingoProgramError::Nono)?;
 
         Ok(())
     }
@@ -826,10 +838,6 @@ pub mod shingo_program {
 
     /// # Errors
     /// Errors if ``queue_computation`` fails
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "Arcium code example does it"
-    )]
     pub fn share_signal_data(
         ctx: Context<ShareSignalData>,
         computation_offset: u64,
@@ -838,22 +846,23 @@ pub mod shingo_program {
         sender_pub_key: [u8; 32],
         nonce: u128,
     ) -> Result<()> {
-        let Ok(subbed_pubkeys) =
-            pubkeys_from_lookuptable(&ctx.accounts.followers.to_account_info())
-        else {
-            return Err(ShingoProgramError::Nono.into());
-        };
+        let subbed_pubkeys = pubkeys_from_lookuptable(&ctx.accounts.followers.to_account_info())
+            .map_err(|_| ShingoProgramError::Nono)?;
 
         let is_subbed = subbed_pubkeys.contains(&ctx.accounts.payer.key());
 
         require!(is_subbed, ShingoProgramError::Nono);
         // --------------------------------------
+        let init_space: u32 = Signal::INIT_SPACE
+            .try_into()
+            .map_err(|_| ShingoProgramError::Nono)?;
+
         let args = ArgBuilder::new()
             .x25519_pubkey(receiver)
             .plaintext_u128(receiver_nonce)
             .x25519_pubkey(sender_pub_key)
             .plaintext_u128(nonce)
-            .account(ctx.accounts.signal.key(), 8, Signal::INIT_SPACE as u32)
+            .account(ctx.accounts.signal.key(), 8, init_space)
             .build();
 
         ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
@@ -950,10 +959,6 @@ pub mod shingo_program {
 
     /// # Errors
     /// Errors if ``queue_computation`` fails
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "Arcium code example does it"
-    )]
     pub fn reveal_signal(ctx: Context<RevealSignal>, computation_offset: u64) -> Result<()> {
         require!(
             (ctx.accounts.season.id == ctx.accounts.signal.season_id)
@@ -961,8 +966,12 @@ pub mod shingo_program {
             ShingoProgramError::Nono
         );
         // --------------------------------------
+        let init_space: u32 = Signal::INIT_SPACE
+            .try_into()
+            .map_err(|_| ShingoProgramError::Nono)?;
+
         let args = ArgBuilder::new()
-            .account(ctx.accounts.signal.key(), 8, Signal::INIT_SPACE as u32)
+            .account(ctx.accounts.signal.key(), 8, init_space)
             .build();
 
         ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;

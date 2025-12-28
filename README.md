@@ -18,10 +18,10 @@ The Shingo Program is the smart contract powering https://shingo.finance
 Contract address / ProgramID :
 
 ```
-6pdAe8NeEt2GUkgZab9PQnNCXEacCVHdePdUmdhFoYEX
+CWtcMZFbPrtYH5cu9xXEwWGbifLTrZVPrSYADzJMyAPV
 ```
 
-Explorer link : https://explorer.solana.com/address/6pdAe8NeEt2GUkgZab9PQnNCXEacCVHdePdUmdhFoYEX?cluster=devnet
+Explorer link : https://explorer.solana.com/address/CWtcMZFbPrtYH5cu9xXEwWGbifLTrZVPrSYADzJMyAPV?cluster=devnet
 
 
 ## Mainnet address ( ProgramID )
